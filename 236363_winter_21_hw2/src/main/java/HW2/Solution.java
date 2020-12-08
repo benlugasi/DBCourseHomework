@@ -572,10 +572,10 @@ public class Solution {
         PreparedStatement pstmt = null;
         float average = 0f;
         try {
-            pstmt = connection.prepareStatement("SELECT AVG(_avg) as Average " +
-                                                    "FROM (SELECT AVG(Salary) " +
+            pstmt = connection.prepareStatement("SELECT AVG(per_test_average) as Average " +
+                                                    "FROM (SELECT AVG(Salary) AS per_test_average " +
                                                           "FROM Supervisor NATURAL JOIN Oversee " +
-                                                          "GROUP BY TestID,Semester) AS _avg");
+                                                          "GROUP BY TestID,Semester) AS per_supervisor_average");
             ResultSet results = pstmt.executeQuery();
             if (!results.next()) {
                 results.close();
@@ -648,7 +648,7 @@ public class Solution {
                                                     "HAVING COUNT(*)>1 " +
                                                     "ORDER BY StudentID DESC");
             ResultSet results = pstmt.executeQuery();
-            while (!results.next()) {
+            while (results.next()) {
                 students.add(results.getInt("StudentID"));
             }
             results.close();
@@ -683,7 +683,7 @@ public class Solution {
                                                     "LIMIT 5");
             pstmt.setInt(1, semester);
             ResultSet results = pstmt.executeQuery();
-            while (!results.next()) {
+            while (results.next()) {
                 testIDs.add(results.getInt("TestID"));
             }
             results.close();
