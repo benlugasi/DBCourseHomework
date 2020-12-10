@@ -59,6 +59,43 @@ public class OurUnitTests extends AbstractTest {
         assertEquals(average, 30, 0.1);
 
     }
+    @org.junit.Ignore
+    @org.junit.Test
+    public void advancedAverageTest() {
+        ReturnValue res;
+        int nrTests = 100;
+        int nrSupervisorsPerTest = 10;
+        float exp_avg = 0.0F;
+        float exp_sum = 0.0F;
+        for (int i = 1; i <= nrTests; i++) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(i);
+            s.setRoom(233+i);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(3);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+            for (int j = 1; j <= nrSupervisorsPerTest; j++) {
+                Supervisor a = new Supervisor();
+                a.setId(i*nrTests+j);
+                a.setName("Roei" + i*nrTests+j);
+                a.setSalary(i*nrTests * j);
+                ReturnValue ret = Solution.addSupervisor(a);
+                assertEquals(ReturnValue.OK, ret);
+
+                ret = Solution.supervisorOverseeTest(i*nrTests+j, i, i);
+                assertEquals(ReturnValue.OK, ret);
+                exp_sum+=i*nrTests*j;
+            }
+            exp_avg += exp_sum/nrSupervisorsPerTest;
+            exp_sum = 0.0F;
+        }
+        exp_avg /= nrTests;
+        float average = Solution.averageTestCost();
+        assertEquals(average, exp_avg, 0.1);
+    }
     @org.junit.Test
     public void supervisorOverseeTest() {
 
@@ -214,6 +251,111 @@ public class OurUnitTests extends AbstractTest {
         expected = 1;
         assertEquals(expected, Solution.getMostPopularTest("EE"));
 
+    }
+    @org.junit.Test
+    public void getWageTest() {
+        ReturnValue res;
+        int nrTests = 10;
+        int supervisorSalary = 5;
+        int exp_wage = nrTests*supervisorSalary;
+        Supervisor a = new Supervisor();
+        a.setId(1);
+        a.setName("Ben");
+        a.setSalary(supervisorSalary);
+        ReturnValue ret = Solution.addSupervisor(a);
+        assertEquals(ReturnValue.OK, ret);
+        for (int i = 1; i <= nrTests; i++) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(i);
+            s.setRoom(233+i);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(3);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+            ret = Solution.supervisorOverseeTest(1, i, i);
+            assertEquals(ReturnValue.OK, ret);
+        }
+        int wage = Solution.getWage(1);
+        assertEquals(exp_wage,wage);
+        wage = Solution.getWage(2);
+        assertEquals(-1,wage);
+    }
+    @org.junit.Test
+    public void testsThisSemesterTest() {
+        ReturnValue res;
+        ArrayList<Integer> exp_semster1 = new ArrayList<Integer>();
+        ArrayList<Integer> exp_semster2 = new ArrayList<Integer>();
+        ArrayList<Integer> semester1;
+        ArrayList<Integer> semester2;
+        int nrTests = 15;
+        for (int i = nrTests; i >= 1; i--) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(i%2+1);
+            s.setRoom(233+i);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(3);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+            if(i%2+1 == 1 && exp_semster1.size() < 5){
+                exp_semster1.add(i);
+            }
+            else if(i%2+1 == 2 && exp_semster2.size() < 5){
+                exp_semster2.add(i);
+            }
+            semester1 = Solution.testsThisSemester(1);
+            semester2 = Solution.testsThisSemester(2);
+            assertArrayEquals(exp_semster1.toArray(),semester1.toArray());
+            assertArrayEquals(exp_semster2.toArray(),semester2.toArray());
+        }
+        semester1 = Solution.testsThisSemester(1);
+        semester2 = Solution.testsThisSemester(2);
+        assertArrayEquals(exp_semster1.toArray(),semester1.toArray());
+        assertArrayEquals(exp_semster2.toArray(),semester2.toArray());
+    }
+    @org.junit.Test
+    public void studentCreditPointsTest() {
+        ReturnValue res;
+        int nrTests = 10;
+        int studentInitCP = 100;
+        int exp_CP = studentInitCP;
+        Student a = new Student();
+        a.setId(1);
+        a.setName("Ben");
+        a.setFaculty("CS");
+        a.setCreditPoints(studentInitCP);
+        ReturnValue ret = Solution.addStudent(a);
+        assertEquals(ReturnValue.OK, ret);
+        Student b = new Student();
+        b.setId(2);
+        b.setName("Bianca");
+        b.setFaculty("EE");
+        b.setCreditPoints(studentInitCP);
+        ret = Solution.addStudent(b);
+        assertEquals(ReturnValue.OK, ret);
+        for (int i = 1; i <= nrTests; i++) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(i);
+            s.setRoom(233+i);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(i);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+            ret = Solution.studentAttendTest(1, i, i);
+            assertEquals(ReturnValue.OK, ret);
+            exp_CP +=i;
+        }
+        int studentCP = Solution.studentCreditPoints(1);
+        assertEquals(exp_CP,studentCP);
+        studentCP = Solution.studentCreditPoints(2);
+        assertEquals(studentInitCP,studentCP);
+        studentCP = Solution.studentCreditPoints(3);
+        assertEquals(0,studentCP);
     }
 }
 

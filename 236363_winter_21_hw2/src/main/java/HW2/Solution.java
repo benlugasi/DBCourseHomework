@@ -605,21 +605,19 @@ public class Solution {
     public static Integer getWage(Integer supervisorID) {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
-        int wage = 0;
+        int wage = -1;
         try {
-            pstmt = connection.prepareStatement("SELECT SUM(Salary) as Wage" +
+            pstmt = connection.prepareStatement("SELECT SUM(Salary) as Wage, COUNT(Salary) as Salaries " +
                                                     "FROM Supervisor NATURAL JOIN Oversee " +
                                                     "where SupervisorID = ?");
             pstmt.setInt(1, supervisorID);
             ResultSet results = pstmt.executeQuery();
-            if (!results.next()) {
-                results.close();
-                return -1;
+            while(results.next()) {
+                if(results.getInt("Salaries") > 0)
+                    wage = results.getInt("Wage");
             }
-            wage = results.getInt("Wage");
             results.close();
         } catch (SQLException e) {
-            //e.printStackTrace()();
             return -1;
         }
         finally {
@@ -744,23 +742,21 @@ public class Solution {
         PreparedStatement pstmt = null;
         int creditPoints = 0;
         try {
-            pstmt = connection.prepareStatement("SELECT SUM(Test.CreditPoints) + (SELECT CreditPoints " +
-                                                                                     "FROM Student " +
-                                                                                     "where StudentID = ?) AS CP" +
+            pstmt = connection.prepareStatement("SELECT COALESCE(SUM(Test.CreditPoints),0) + (SELECT CreditPoints " +
+                                                                                                 "FROM Student " +
+                                                                                                 "where StudentID = ?) AS CP " +
                                                     "FROM Attend NATURAL JOIN Test " +
                                                     "where Attend.StudentID = ?");
             pstmt.setInt(1, studentID);
             pstmt.setInt(2, studentID);
             ResultSet results = pstmt.executeQuery();
-            if (!results.next()) {
-                results.close();
-                return 0;
+            while (results.next()) {
+                creditPoints = results.getInt("CP");
             }
-            creditPoints = results.getInt("CP");
             results.close();
         } catch (SQLException e) {
             //e.printStackTrace()();
-            return 0;
+            return -1;
         }
         finally {
             try {
