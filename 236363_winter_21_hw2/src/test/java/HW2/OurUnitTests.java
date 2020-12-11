@@ -14,6 +14,8 @@ public class OurUnitTests extends AbstractTest {
     public void basicAPITest() {
         ReturnValue res;
         Test test = new Test();
+        res = Solution.addTest(test);
+        assertEquals(ReturnValue.BAD_PARAMS, res);
         test.setId(1);
         test.setSemester(1);
         test.setRoom(233);
@@ -22,45 +24,80 @@ public class OurUnitTests extends AbstractTest {
         test.setCreditPoints(3);
         res = Solution.addTest(test);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.addTest(test);
+        assertEquals(ReturnValue.ALREADY_EXISTS, res);
 
         Supervisor sup = new Supervisor();
-        sup.setId(1);
         sup.setName("Ben");
+        res = Solution.addSupervisor(sup);
+        assertEquals(ReturnValue.BAD_PARAMS, res);
+        sup.setId(1);
         sup.setSalary(5);
         res = Solution.addSupervisor(sup);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.addSupervisor(sup);
+        assertEquals(ReturnValue.ALREADY_EXISTS, res);
 
         Student stud = new Student();
-        stud.setId(1);
         stud.setName("Benny");
         stud.setFaculty("CS");
+        res = Solution.addStudent(stud);
+        assertEquals(ReturnValue.BAD_PARAMS, res);
+        stud.setId(1);
         stud.setCreditPoints(100);
         res = Solution.addStudent(stud);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.addStudent(stud);
+        assertEquals(ReturnValue.ALREADY_EXISTS, res);
 
         Test test2 = Solution.getTestProfile(1,1);
         assertEquals(test, test2);
+        test2 = Solution.getTestProfile(1,2);
+        assertEquals(Test.badTest(), test2);
         Student stud2 = Solution.getStudentProfile(1);
         assertEquals(stud, stud2);
+        stud2 = Solution.getStudentProfile(2);
+        assertEquals(Student.badStudent(), stud2);
         Supervisor sup2 = Solution.getSupervisorProfile(1);
         assertEquals(sup, sup2);
+        sup2 = Solution.getSupervisorProfile(2);
+        assertEquals(Supervisor.badSupervisor(), sup2);
 
         res = Solution.studentAttendTest(1,1,1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.studentAttendTest(1,1,1);
+        assertEquals(ReturnValue.ALREADY_EXISTS, res);
+        res = Solution.studentAttendTest(2,1,1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
         res = Solution.studentWaiveTest(1,1,1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.studentWaiveTest(1,1,1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
         res = Solution.supervisorOverseeTest(1,1,1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.supervisorOverseeTest(1,1,1);
+        assertEquals(ReturnValue.ALREADY_EXISTS, res);
+        res = Solution.supervisorOverseeTest(2,1,1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
         res = Solution.supervisorStopsOverseeTest(1,1,1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.supervisorStopsOverseeTest(1,1,1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
 
         res = Solution.deleteTest(1,1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.deleteTest(1,1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
         res = Solution.deleteStudent(1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.deleteStudent(1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
         res = Solution.deleteSupervisor(1);
         assertEquals(ReturnValue.OK, res);
+        res = Solution.deleteSupervisor(1);
+        assertEquals(ReturnValue.NOT_EXISTS, res);
     }
+
     @org.junit.Test
     public void AverageTest() {
 

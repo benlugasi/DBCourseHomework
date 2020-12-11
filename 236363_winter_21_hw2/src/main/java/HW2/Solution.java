@@ -47,13 +47,15 @@ public class Solution {
                                                     "TestID INTEGER NOT NULL,\n" +
                                                     "Semester INTEGER NOT NULL,\n" +
                                                     "FOREIGN KEY(StudentID) REFERENCES Student(StudentID),\n" +
-                                                    "FOREIGN KEY(TestID, Semester) REFERENCES Test(TestID, Semester))");
+                                                    "FOREIGN KEY(TestID, Semester) REFERENCES Test(TestID, Semester), \n" +
+                                                    "PRIMARY KEY(StudentID,TestID,Semester))");
             pstmt.execute();
             pstmt = connection.prepareStatement("CREATE TABLE Oversee (SupervisorID INTEGER NOT NULL,\n" +
                                                     "TestID INTEGER NOT NULL,\n" +
                                                     "Semester INTEGER NOT NULL,\n" +
                                                     "FOREIGN KEY(SupervisorID) REFERENCES Supervisor(SupervisorID),\n" +
-                                                    "FOREIGN KEY(TestID, Semester) REFERENCES Test(TestID, Semester))");
+                                                    "FOREIGN KEY(TestID, Semester) REFERENCES Test(TestID, Semester), \n" +
+                                                    "PRIMARY KEY(SupervisorID,TestID,Semester))");
             pstmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
