@@ -11,6 +11,57 @@ import static org.junit.Assert.*;
 
 public class OurUnitTests extends AbstractTest {
     @org.junit.Test
+    public void basicAPITest() {
+        ReturnValue res;
+        Test test = new Test();
+        test.setId(1);
+        test.setSemester(1);
+        test.setRoom(233);
+        test.setDay(1);
+        test.setTime(1);
+        test.setCreditPoints(3);
+        res = Solution.addTest(test);
+        assertEquals(ReturnValue.OK, res);
+
+        Supervisor sup = new Supervisor();
+        sup.setId(1);
+        sup.setName("Ben");
+        sup.setSalary(5);
+        res = Solution.addSupervisor(sup);
+        assertEquals(ReturnValue.OK, res);
+
+        Student stud = new Student();
+        stud.setId(1);
+        stud.setName("Benny");
+        stud.setFaculty("CS");
+        stud.setCreditPoints(100);
+        res = Solution.addStudent(stud);
+        assertEquals(ReturnValue.OK, res);
+
+        Test test2 = Solution.getTestProfile(1,1);
+        assertEquals(test, test2);
+        Student stud2 = Solution.getStudentProfile(1);
+        assertEquals(stud, stud2);
+        Supervisor sup2 = Solution.getSupervisorProfile(1);
+        assertEquals(sup, sup2);
+
+        res = Solution.studentAttendTest(1,1,1);
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.studentWaiveTest(1,1,1);
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.supervisorOverseeTest(1,1,1);
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.supervisorStopsOverseeTest(1,1,1);
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.deleteTest(1,1);
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.deleteStudent(1);
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.deleteSupervisor(1);
+        assertEquals(ReturnValue.OK, res);
+    }
+    @org.junit.Test
     public void AverageTest() {
 
         ReturnValue res;
