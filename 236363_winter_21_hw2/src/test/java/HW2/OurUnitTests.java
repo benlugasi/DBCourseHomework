@@ -28,10 +28,10 @@ public class OurUnitTests extends AbstractTest {
         assertEquals(ReturnValue.ALREADY_EXISTS, res);
 
         Supervisor sup = new Supervisor();
-        sup.setName("Ben");
         res = Solution.addSupervisor(sup);
         assertEquals(ReturnValue.BAD_PARAMS, res);
         sup.setId(1);
+        sup.setName("Ben");
         sup.setSalary(5);
         res = Solution.addSupervisor(sup);
         assertEquals(ReturnValue.OK, res);
@@ -39,11 +39,11 @@ public class OurUnitTests extends AbstractTest {
         assertEquals(ReturnValue.ALREADY_EXISTS, res);
 
         Student stud = new Student();
-        stud.setName("Benny");
-        stud.setFaculty("CS");
         res = Solution.addStudent(stud);
         assertEquals(ReturnValue.BAD_PARAMS, res);
         stud.setId(1);
+        stud.setName("Benny");
+        stud.setFaculty("CS");
         stud.setCreditPoints(100);
         res = Solution.addStudent(stud);
         assertEquals(ReturnValue.OK, res);
@@ -97,7 +97,6 @@ public class OurUnitTests extends AbstractTest {
         res = Solution.deleteSupervisor(1);
         assertEquals(ReturnValue.NOT_EXISTS, res);
     }
-
     @org.junit.Test
     public void AverageTest() {
 
@@ -107,6 +106,16 @@ public class OurUnitTests extends AbstractTest {
         s.setSemester(1);
         s.setRoom(233);
         s.setDay(1);
+        s.setTime(1);
+        s.setCreditPoints(3);
+        res = Solution.addTest(s);
+        assertEquals(ReturnValue.OK, res);
+
+        s = new Test();
+        s.setId(2);
+        s.setSemester(2);
+        s.setRoom(222);
+        s.setDay(2);
         s.setTime(1);
         s.setCreditPoints(3);
         res = Solution.addTest(s);
@@ -144,14 +153,15 @@ public class OurUnitTests extends AbstractTest {
         assertEquals(ReturnValue.OK, ret);
 
         float average = Solution.averageTestCost();
-        assertEquals(average, 30, 0.1);
+        assertEquals(average, 20, 0.1);
 
     }
-    @org.junit.Ignore
+//    @org.junit.Ignore
     @org.junit.Test
     public void advancedAverageTest() {
         ReturnValue res;
-        int nrTests = 100;
+        int nrTests = 120;
+        int nrTestsToWatch = 100;
         int nrSupervisorsPerTest = 10;
         float exp_avg = 0.0F;
         float exp_sum = 0.0F;
@@ -165,20 +175,22 @@ public class OurUnitTests extends AbstractTest {
             s.setCreditPoints(3);
             res = Solution.addTest(s);
             assertEquals(ReturnValue.OK, res);
-            for (int j = 1; j <= nrSupervisorsPerTest; j++) {
-                Supervisor a = new Supervisor();
-                a.setId(i*nrTests+j);
-                a.setName("Roei" + i*nrTests+j);
-                a.setSalary(i*nrTests * j);
-                ReturnValue ret = Solution.addSupervisor(a);
-                assertEquals(ReturnValue.OK, ret);
+            if(i<=nrTestsToWatch) {
+                for (int j = 1; j <= nrSupervisorsPerTest; j++) {
+                    Supervisor a = new Supervisor();
+                    a.setId(i * nrTests + j);
+                    a.setName("Roei" + i * nrTests + j);
+                    a.setSalary(i * nrTests * j);
+                    ReturnValue ret = Solution.addSupervisor(a);
+                    assertEquals(ReturnValue.OK, ret);
 
-                ret = Solution.supervisorOverseeTest(i*nrTests+j, i, i);
-                assertEquals(ReturnValue.OK, ret);
-                exp_sum+=i*nrTests*j;
+                    ret = Solution.supervisorOverseeTest(i * nrTests + j, i, i);
+                    assertEquals(ReturnValue.OK, ret);
+                    exp_sum += i * nrTests * j;
+                }
+                exp_avg += exp_sum / nrSupervisorsPerTest;
+                exp_sum = 0.0F;
             }
-            exp_avg += exp_sum/nrSupervisorsPerTest;
-            exp_sum = 0.0F;
         }
         exp_avg /= nrTests;
         float average = Solution.averageTestCost();
@@ -444,6 +456,53 @@ public class OurUnitTests extends AbstractTest {
         assertEquals(studentInitCP,studentCP);
         studentCP = Solution.studentCreditPoints(3);
         assertEquals(0,studentCP);
+    }
+    @org.junit.Test
+    public void getConflictingTestsTest() {
+        ReturnValue res;
+        ArrayList<Integer> exp = new ArrayList<Integer>();
+        for (int i = 1; i <= 3; i++) {
+            exp.add(i);
+        }
+        Test s1 = new Test();
+        s1.setId(1);
+        s1.setSemester(1);
+        s1.setRoom(233);
+        s1.setDay(1);
+        s1.setTime(1);
+        s1.setCreditPoints(2);
+        res = Solution.addTest(s1);
+        assertEquals(ReturnValue.OK, res);
+        Test s2 = new Test();
+        s2.setId(2);
+        s2.setSemester(1);
+        s2.setRoom(233);
+        s2.setDay(1);
+        s2.setTime(1);
+        s2.setCreditPoints(2);
+        res = Solution.addTest(s2);
+        assertEquals(ReturnValue.OK, res);
+        Test s3 = new Test();
+        s3.setId(3);
+        s3.setSemester(1);
+        s3.setRoom(233);
+        s3.setDay(1);
+        s3.setTime(1);
+        s3.setCreditPoints(2);
+        res = Solution.addTest(s3);
+        assertEquals(ReturnValue.OK, res);
+        Test s4 = new Test();
+        s4.setId(4);
+        s4.setSemester(1);
+        s4.setRoom(233);
+        s4.setDay(1);
+        s4.setTime(2);
+        s4.setCreditPoints(2);
+        res = Solution.addTest(s4);
+        assertEquals(ReturnValue.OK, res);
+
+        ArrayList<Integer> act = Solution.getConflictingTests();
+        assertArrayEquals(exp.toArray(),act.toArray());
     }
 }
 

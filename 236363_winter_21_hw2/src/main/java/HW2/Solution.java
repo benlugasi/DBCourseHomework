@@ -57,6 +57,13 @@ public class Solution {
                                                     "FOREIGN KEY(TestID, Semester) REFERENCES Test(TestID, Semester), \n" +
                                                     "PRIMARY KEY(SupervisorID,TestID,Semester))");
             pstmt.execute();
+            pstmt = connection.prepareStatement("CREATE VIEW CpAfterAttend AS " +
+                                                    "SELECT Student.StudentID, Student.Faculty, " +
+                                                    "COALESCE(SUM(Test.CreditPoints),0) + Student.CreditPoints as CP " +
+                                                    "FROM Student LEFT OUTER JOIN Attend NATURAL JOIN Test ON Student.StudentID = Attend.StudentID " +
+                                                    "GROUP BY Student.StudentID");
+            pstmt.execute();
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -97,6 +104,8 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
+            pstmt = connection.prepareStatement("DROP VIEW IF EXISTS CpAfterAttend");
+            pstmt.execute();
             pstmt = connection.prepareStatement("DROP TABLE IF EXISTS Attend, Oversee, Student, Supervisor, Test");
             pstmt.execute();
         } catch (SQLException e) {
@@ -133,7 +142,12 @@ public class Solution {
             {
                 return ALREADY_EXISTS;
             }
-            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()){
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue())
+            {
+                return BAD_PARAMS;
+            }
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue())
+            {
                 return BAD_PARAMS;
             }
             return ERROR;
@@ -243,7 +257,12 @@ public class Solution {
             {
                 return ALREADY_EXISTS;
             }
-            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()){
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue())
+            {
+                return BAD_PARAMS;
+            }
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue())
+            {
                 return BAD_PARAMS;
             }
             return ERROR;
@@ -345,7 +364,12 @@ public class Solution {
             {
                 return ALREADY_EXISTS;
             }
-            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()){
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue())
+            {
+                return BAD_PARAMS;
+            }
+            else if (Integer.parseInt(e.getSQLState()) == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue())
+            {
                 return BAD_PARAMS;
             }
             return ERROR;
@@ -574,7 +598,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         float average = 0f;
         try {
-            pstmt = connection.prepareStatement("SELECT AVG(per_test_average) as Average " +
+            pstmt = connection.prepareStatement("SELECT SUM(per_test_average)/(SELECT COUNT(*) FROM Test) as Average " +
                                                     "FROM (SELECT AVG(Salary) AS per_test_average " +
                                                           "FROM Supervisor NATURAL JOIN Oversee " +
                                                           "GROUP BY TestID,Semester) AS per_supervisor_average");
@@ -739,18 +763,15 @@ public class Solution {
         return true;
     }
 
-    public static Integer studentCreditPoints(Integer studentID) { //TODO: Ask about this solution
+    public static Integer studentCreditPoints(Integer studentID) {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         int creditPoints = 0;
         try {
-            pstmt = connection.prepareStatement("SELECT COALESCE(SUM(Test.CreditPoints),0) + (SELECT CreditPoints " +
-                                                                                                 "FROM Student " +
-                                                                                                 "where StudentID = ?) AS CP " +
-                                                    "FROM Attend NATURAL JOIN Test " +
-                                                    "where Attend.StudentID = ?");
+            pstmt = connection.prepareStatement("SELECT CP " +
+                                                    "FROM CpAfterAttend " +
+                                                    "where StudentID = ?");
             pstmt.setInt(1, studentID);
-            pstmt.setInt(2, studentID);
             ResultSet results = pstmt.executeQuery();
             while (results.next()) {
                 creditPoints = results.getInt("CP");
@@ -814,7 +835,39 @@ public class Solution {
     }
 
     public static ArrayList<Integer> getConflictingTests() {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        ArrayList<Integer> testIDs = new ArrayList<Integer>();
+        try {
+            pstmt = connection.prepareStatement("SELECT DISTINCT test1.TestID " +
+                                                    "FROM Test test1, Test test2 " +
+                                                    "where test1.TestID <> test2.TestID " +
+                                                    "AND test1.Semester = test2.Semester " +
+                                                    "AND test1.Day = test2.Day " +
+                                                    "AND test1.Time = test2.Time " +
+                                                    "ORDER BY test1.TestID ASC");
+            ResultSet results = pstmt.executeQuery();
+            while (results.next()) {
+                testIDs.add(results.getInt("TestID"));
+            }
+            results.close();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return testIDs;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return testIDs;
     }
 
     public static ArrayList<Integer> graduateStudents() {
