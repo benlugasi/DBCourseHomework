@@ -504,5 +504,103 @@ public class OurUnitTests extends AbstractTest {
         ArrayList<Integer> act = Solution.getConflictingTests();
         assertArrayEquals(exp.toArray(),act.toArray());
     }
+
+    @org.junit.Test
+    public void graduateStudentsTest() {
+        ReturnValue res;
+        int nrTests = 10;
+        int studentInitCP = 100;
+        int exp_CP = studentInitCP;
+        Student a = new Student();
+        a.setId(1);
+        a.setName("Ben");
+        a.setFaculty("CS");
+        a.setCreditPoints(studentInitCP);
+        ReturnValue ret = Solution.addStudent(a);
+        assertEquals(ReturnValue.OK, ret);
+        Student b = new Student();
+        b.setId(2);
+        b.setName("Bianca");
+        b.setFaculty("EE");
+        b.setCreditPoints(200);
+        ret = Solution.addStudent(b);
+        assertEquals(ReturnValue.OK, ret);
+        for (int i = 1; i <= nrTests; i++) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(i);
+            s.setRoom(233+i);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(i);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+            ret = Solution.studentAttendTest(1, i, i);
+            assertEquals(ReturnValue.OK, ret);
+            exp_CP +=i;
+        }
+        ArrayList<Integer> actual = new ArrayList<Integer>();
+        actual = Solution.graduateStudents();
+        ArrayList<Integer> exp = new ArrayList<Integer>();
+        for (int i = 1; i <= 2; i++) {
+            exp.add(i);
+        }
+        assertArrayEquals(exp.toArray(),actual.toArray());
+    }
+
+    @org.junit.Test
+    public void getCloseStudentsTest() {
+        ReturnValue res;
+        for (int i = 1; i < 10; i++) {
+            Test s = new Test();
+            s.setId(i);
+            s.setSemester(1);
+            s.setRoom(233);
+            s.setDay(1);
+            s.setTime(1);
+            s.setCreditPoints(3);
+            res = Solution.addTest(s);
+            assertEquals(ReturnValue.OK, res);
+        }
+
+        for (int i = 1; i < 10; i++) {
+            Student s = new Student();
+            s.setId(i);
+            s.setFaculty("CS");
+            s.setName("Moshe"+ i);
+            s.setCreditPoints(3);
+            res = Solution.addStudent(s);
+            assertEquals(ReturnValue.OK, res);
+        }
+
+        for (int i = 1; i < 5; i++) {
+            Supervisor a = new Supervisor();
+            a.setId(i);
+            a.setName("Roei" + i);
+            a.setSalary(i * 5);
+            ReturnValue ret = Solution.addSupervisor(a);
+            assertEquals(ReturnValue.OK, ret);
+
+        }
+        Solution.studentAttendTest(1, 1, 1);
+        Solution.studentAttendTest(1, 2, 1);
+        Solution.studentAttendTest(1, 3, 1);
+        Solution.studentAttendTest(2, 1, 1);
+        Solution.studentAttendTest(2, 2, 1);
+        Solution.studentAttendTest(3, 2, 1);
+        Solution.studentAttendTest(4, 2, 1);
+        Solution.studentAttendTest(5, 2, 1);
+        Solution.studentAttendTest(6, 1, 1);
+        Solution.studentAttendTest(6, 2, 1);
+
+        ArrayList<Integer> actual = new ArrayList<Integer>();
+        actual = Solution.getCloseStudents(1); //Moshe ha gever
+        ArrayList<Integer> exp = new ArrayList<Integer>();
+        exp.add(6);
+        exp.add(2);
+        assertArrayEquals(exp.toArray(),actual.toArray());
+
+    }
+
 }
 

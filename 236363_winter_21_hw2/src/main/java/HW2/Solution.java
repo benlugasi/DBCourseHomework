@@ -871,10 +871,75 @@ public class Solution {
     }
 
     public static ArrayList<Integer> graduateStudents() {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        ArrayList<Integer> StudentIDs = new ArrayList<Integer>();
+        try {
+            pstmt = connection.prepareStatement("SELECT StudentID " +
+                                                    "FROM CpAfterAttend NATURAL JOIN CreditPoints " +
+                                                    "where cp >= points " +
+                                                    "ORDER BY StudentID ASC " +
+                                                    "LIMIT 5");
+            ResultSet results = pstmt.executeQuery();
+            while (results.next()) {
+                StudentIDs.add(results.getInt("StudentID"));
+            }
+            results.close();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return StudentIDs;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return StudentIDs;
     }
 
     public static ArrayList<Integer> getCloseStudents(Integer studentID) {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        ArrayList<Integer> StudentIDs = new ArrayList<Integer>();
+        try {
+            pstmt = connection.prepareStatement("SELECT StudentID " +
+                                                    "FROM (SELECT b.StudentID , COUNT(b.StudentID) as cnt\n" +
+                                                          "FROM Attend a, Attend b\n" +
+                                                          "where a.StudentID = 1 AND a.StudentID <> b.StudentID AND " +
+                                                          "a.TestID = b.TestID AND a.Semester = b.Semester " +
+                                                          "GROUP BY b.studentid) as studentsWithSameTests " +
+                                                    "where CAST(cnt AS float) / " +
+                                                    "CAST((SELECT COUNT(*) FROM Attend where studentid = 1) AS float) >= 0.5 " +
+                                                    "ORDER BY StudentID DESC " +
+                                                    "LIMIT 10");
+            ResultSet results = pstmt.executeQuery();
+            while (results.next()) {
+                StudentIDs.add(results.getInt("StudentID"));
+            }
+            results.close();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return StudentIDs;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
+        return StudentIDs;
     }
 }
