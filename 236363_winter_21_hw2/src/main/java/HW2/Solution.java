@@ -28,9 +28,9 @@ public class Solution {
                                                     "Day INTEGER NOT NULL,\n" +
                                                     "CreditPoints INTEGER NOT NULL,\n" +
                                                     "PRIMARY KEY(TestID, Semester),\n" +
-                                                    "CHECK(TestID>0 AND Room>0 AND CreditPoints>0 AND Semester>=1 " +
-                                                    "AND Semester<=3 AND Time>=1 AND Time<=3 AND DAY>=1" +
-                                                    "AND Day<=31 ))");
+                                                    "CHECK(TestID>0 AND Room>0 AND CreditPoints>0 " +
+                                                    "AND Semester BETWEEN 1 AND 3 AND Time BETWEEN 1 AND 3 AND " +
+                                                    "DAY BETWEEN 1 AND 31))");
             pstmt.execute();
             pstmt = connection.prepareStatement("CREATE TABLE Student (StudentID INTEGER NOT NULL,\n" +
                                                     "Name TEXT NOT NULL,\n" +
@@ -635,10 +635,12 @@ public class Solution {
         PreparedStatement pstmt = null;
         int wage = -1;
         try {
-            pstmt = connection.prepareStatement("SELECT SUM(Salary) as Wage, COUNT(Salary) as Salaries " +
+            pstmt = connection.prepareStatement("SELECT SUM(Salary) as Wage, " +
+                                                    "(SELECT COUNT(SupervisorID) FROM Supervisor where SupervisorID = ?) as Salaries " +
                                                     "FROM Supervisor NATURAL JOIN Oversee " +
                                                     "where SupervisorID = ?");
             pstmt.setInt(1, supervisorID);
+            pstmt.setInt(2, supervisorID);
             ResultSet results = pstmt.executeQuery();
             while(results.next()) {
                 if(results.getInt("Salaries") > 0)
@@ -668,7 +670,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         ArrayList<Integer> students = new ArrayList<Integer>();
         try {
-            pstmt = connection.prepareStatement("SELECT StudentID " +
+            pstmt = connection.prepareStatement("SELECT DISTINCT StudentID " +
                                                     "FROM Attend NATURAL JOIN Oversee " +
                                                     "GROUP BY StudentID,SupervisorID " +
                                                     "HAVING COUNT(*)>1 " +
@@ -738,7 +740,7 @@ public class Solution {
         try {
             pstmt = connection.prepareStatement("SELECT StudentID " +
                                                     "FROM Student NATURAL JOIN CreditPoints " +
-                                                    "where StudentID = ? AND CreditPoints >= Points/2");
+                                                    "where StudentID = ? AND CreditPoints >= Points/2 + Points%2");
             pstmt.setInt(1, studentID);
             ResultSet results = pstmt.executeQuery();
             if (!results.next()) {
