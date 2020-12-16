@@ -28,7 +28,9 @@ public class Solution {
                                                     "Day INTEGER NOT NULL,\n" +
                                                     "CreditPoints INTEGER NOT NULL,\n" +
                                                     "PRIMARY KEY(TestID, Semester),\n" +
-                                                    "CHECK(TestID>0 AND Room>0 AND CreditPoints>0))");
+                                                    "CHECK(TestID>0 AND Room>0 AND CreditPoints>0 AND Semester>=1 " +
+                                                    "AND Semester<=3 AND Time>=1 AND Time<=3 AND DAY>=1" +
+                                                    "AND Day<=31 ))");
             pstmt.execute();
             pstmt = connection.prepareStatement("CREATE TABLE Student (StudentID INTEGER NOT NULL,\n" +
                                                     "Name TEXT NOT NULL,\n" +
