@@ -70,6 +70,24 @@ public class Solution {
                                                     "FROM Supervisor LEFT OUTER JOIN Oversee ON Supervisor.SupervisorID = Oversee.SupervisorID\n" +
                                                     "GROUP BY Supervisor.SupervisorID");
             pstmt.execute();
+            pstmt = connection.prepareStatement("CREATE VIEW StudentWithALLStudents AS\n" +
+                                                    "SELECT stu1.StudentID as StudentID1, stu2.StudentID as StudentID2\n" +
+                                                    "FROM Student stu1, Student stu2\n" +
+                                                    "where stu1.StudentID <> stu2.StudentID\n" +
+                                                    "Order BY stu1.StudentID ASC");
+            pstmt.execute();
+            pstmt = connection.prepareStatement("CREATE VIEW StudentTestCount AS\n" +
+                                                    "SELECT Student.StudentID AS StudentID1, COUNT(Attend.StudentID)\n" +
+                                                    "FROM Student LEFT OUTER JOIN Attend ON Student.StudentID = Attend.StudentID\n" +
+                                                    "GROUP BY Student.StudentID\n" +
+                                                    "ORDER BY Student.StudentID ASC");
+            pstmt.execute();
+            pstmt = connection.prepareStatement("CREATE VIEW Same AS\n" +
+                                                    "SELECT attend1.StudentID as StudentID1, attend2.StudentID as StudentID2, COUNT(attend1.TestID) As cnt_same\n" +
+                                                    "FROM Attend attend1, Attend attend2\n" +
+                                                    "where attend1.StudentID < attend2.StudentID AND attend1.TestID = attend2.TestID AND attend1.Semester = attend2.Semester\n" +
+                                                    "GROUP BY attend1.StudentID, attend2.StudentID");
+            pstmt.execute();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -111,7 +129,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("DROP VIEW IF EXISTS Salaries, CpAfterAttend");
+            pstmt = connection.prepareStatement("DROP VIEW IF EXISTS Salaries, CpAfterAttend, StudentWithALLStudents, StudentTestCount, Same");
             pstmt.execute();
             pstmt = connection.prepareStatement("DROP TABLE IF EXISTS Attend, Oversee, Student, Supervisor, Test");
             pstmt.execute();
@@ -916,15 +934,11 @@ public class Solution {
         PreparedStatement pstmt = null;
         ArrayList<Integer> StudentIDs = new ArrayList<Integer>();
         try {
-            pstmt = connection.prepareStatement("SELECT StudentID " +
-                                                    "FROM (SELECT b.StudentID , COUNT(b.StudentID) as cnt\n" +
-                                                          "FROM Attend a, Attend b\n" +
-                                                          "where a.StudentID = 1 AND a.StudentID <> b.StudentID AND " +
-                                                          "a.TestID = b.TestID AND a.Semester = b.Semester " +
-                                                          "GROUP BY b.studentid) as studentsWithSameTests " +
-                                                    "where CAST(cnt AS float) / " +
-                                                    "CAST((SELECT COUNT(*) FROM Attend where studentid = 1) AS float) >= 0.5 " +
-                                                    "ORDER BY StudentID DESC " +
+            pstmt = connection.prepareStatement("SELECT StudentWithALLStudents.StudentID2 AS StudentID\n" +
+                                                    "FROM (StudentWithALLStudents NATURAL JOIN StudentTestCount) LEFT OUTER JOIN SAME\n" +
+                                                    "ON StudentWithALLStudents.StudentID1 = Same.StudentID1 AND StudentWithALLStudents.StudentID2 = Same.StudentID2\n" +
+                                                    "where count<=2*COALESCE(cnt_same,0) AND StudentWithALLStudents.StudentID1 = 1\n" +
+                                                    "ORDER BY StudentWithALLStudents.StudentID2 DESC\n" +
                                                     "LIMIT 10");
             ResultSet results = pstmt.executeQuery();
             while (results.next()) {

@@ -458,14 +458,14 @@ public class OurUnitTests extends AbstractTest {
         for (int i = 1; i <= nrTests; i++) {
             Test s = new Test();
             s.setId(i);
-            s.setSemester(i);
+            s.setSemester(1);
             s.setRoom(233+i);
             s.setDay(1);
             s.setTime(1);
             s.setCreditPoints(i);
             res = Solution.addTest(s);
             assertEquals(ReturnValue.OK, res);
-            ret = Solution.studentAttendTest(1, i, i);
+            ret = Solution.studentAttendTest(1, i, 1);
             assertEquals(ReturnValue.OK, ret);
             exp_CP +=i;
         }
@@ -592,15 +592,6 @@ public class OurUnitTests extends AbstractTest {
             assertEquals(ReturnValue.OK, res);
         }
 
-        for (int i = 1; i < 5; i++) {
-            Supervisor a = new Supervisor();
-            a.setId(i);
-            a.setName("Roei" + i);
-            a.setSalary(i * 5);
-            ReturnValue ret = Solution.addSupervisor(a);
-            assertEquals(ReturnValue.OK, ret);
-
-        }
         Solution.studentAttendTest(1, 1, 1);
         Solution.studentAttendTest(1, 2, 1);
         Solution.studentAttendTest(1, 3, 1);
