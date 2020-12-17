@@ -358,28 +358,47 @@ public class OurUnitTests extends AbstractTest {
         int nrTests = 10;
         int supervisorSalary = 5;
         int exp_wage = nrTests*supervisorSalary;
-        Supervisor a = new Supervisor();
-        a.setId(1);
-        a.setName("Ben");
-        a.setSalary(supervisorSalary);
-        ReturnValue ret = Solution.addSupervisor(a);
+        Supervisor c = new Supervisor();
+        c.setId(1);
+        c.setName("Ben");
+        c.setSalary(supervisorSalary);
+        ReturnValue ret = Solution.addSupervisor(c);
+        assertEquals(ReturnValue.OK, ret);
+        Supervisor b = new Supervisor();
+        b.setId(2);
+        b.setName("Benny");
+        b.setSalary(supervisorSalary);
+        ret = Solution.addSupervisor(b);
+        assertEquals(ReturnValue.OK, ret);
+        c.setId(3);
+        c.setName("Benz");
+        c.setSalary(supervisorSalary);
+        ret = Solution.addSupervisor(c);
         assertEquals(ReturnValue.OK, ret);
         for (int i = 1; i <= nrTests; i++) {
             Test s = new Test();
             s.setId(i);
-            s.setSemester(i);
+            s.setSemester(1);
             s.setRoom(233+i);
             s.setDay(1);
             s.setTime(1);
             s.setCreditPoints(3);
             res = Solution.addTest(s);
             assertEquals(ReturnValue.OK, res);
-            ret = Solution.supervisorOverseeTest(1, i, i);
+            if(i<=5) {
+                ret = Solution.supervisorOverseeTest(1, i, 1);
+                assertEquals(ReturnValue.OK, ret);
+            }
+            ret = Solution.supervisorOverseeTest(2, i, 1);
             assertEquals(ReturnValue.OK, ret);
         }
         int wage = Solution.getWage(1);
-        assertEquals(exp_wage,wage);
+        assertEquals(exp_wage/2,wage);
         wage = Solution.getWage(2);
+        assertEquals(exp_wage,wage);
+        wage = Solution.getWage(3);
+        assertEquals(0,wage);
+        wage = Solution.getWage(4);
         assertEquals(-1,wage);
     }
     @org.junit.Test

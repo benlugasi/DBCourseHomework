@@ -65,6 +65,11 @@ public class Solution {
                                                     "FROM Student LEFT OUTER JOIN Attend NATURAL JOIN Test ON Student.StudentID = Attend.StudentID " +
                                                     "GROUP BY Student.StudentID");
             pstmt.execute();
+            pstmt = connection.prepareStatement("CREATE VIEW Salaries AS " +
+                                                    "SELECT Supervisor.SupervisorID, Salary, COUNT(TestID), Salary*COUNT(TestID) as Wage\n" +
+                                                    "FROM Supervisor LEFT OUTER JOIN Oversee ON Supervisor.SupervisorID = Oversee.SupervisorID\n" +
+                                                    "GROUP BY Supervisor.SupervisorID");
+            pstmt.execute();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -106,7 +111,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("DROP VIEW IF EXISTS CpAfterAttend");
+            pstmt = connection.prepareStatement("DROP VIEW IF EXISTS Salaries, CpAfterAttend");
             pstmt.execute();
             pstmt = connection.prepareStatement("DROP TABLE IF EXISTS Attend, Oversee, Student, Supervisor, Test");
             pstmt.execute();
@@ -635,16 +640,14 @@ public class Solution {
         PreparedStatement pstmt = null;
         int wage = -1;
         try {
-            pstmt = connection.prepareStatement("SELECT SUM(Salary) as Wage, " +
-                                                    "(SELECT COUNT(SupervisorID) FROM Supervisor where SupervisorID = ?) as Salaries " +
-                                                    "FROM Supervisor NATURAL JOIN Oversee " +
+            pstmt = connection.prepareStatement("SELECT Wage " +
+                                                    "FROM Salaries " +
                                                     "where SupervisorID = ?");
             pstmt.setInt(1, supervisorID);
-            pstmt.setInt(2, supervisorID);
             ResultSet results = pstmt.executeQuery();
             while(results.next()) {
-                if(results.getInt("Salaries") > 0)
-                    wage = results.getInt("Wage");
+
+                wage = results.getInt("Wage");
             }
             results.close();
         } catch (SQLException e) {
